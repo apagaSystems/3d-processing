@@ -1,8 +1,5 @@
 import numpy as np
-from matplotlib import pyplot as plt
-from stl import mesh
 import pyvista as pv
-from pyvista import examples
 
 
 # mesh = examples.load_channels()
