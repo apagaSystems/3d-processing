@@ -1,32 +1,63 @@
 import numpy as np
 import pyvista as pv
 
+my_mesh = pv.read('./models/cone.stl')
 
-# mesh = examples.load_channels()
-my_mesh = pv.read('./models/nut.stl')
-# define a categorical colormap
-# cmap = plt.cm.get_cmap("viridis", 4)
+# make sure you compute the normals before you slice it
+my_mesh.compute_normals(inplace=True)  # added
 
-slices = my_mesh.slice_along_axis(n=60, axis="z",tolerance=1.0)
-clips=my_mesh.clip(normal="z")
-elevation=my_mesh.elevation()
-# slices = my_mesh.slice((1,0,0))
+centers = my_mesh.cell_centers()
+print(len(centers.points))
+z_size = my_mesh.bounds[-1] - my_mesh.bounds[-2]
+thickness = 400  # micrometer
+# slices = my_mesh.slice_along_axis(n=int(z_size * 1000 / thickness), axis="z")
+slices = my_mesh.slice_along_axis(n=1, axis="y")
+# print(slices.cell_centers())
+###############################################################################
+# This is for the original dataset
 
-for item in slices.keys():
+# points from a PolyData dataset
+# print(my_mesh.points)
 
-    print(np.array(slices["slice0"]))
+# face centers from a polydata dataset
+# print(len(my_mesh.cell_centers().points))
+
+###############################################################################
+
+###############################################################################
+
+# If you want to get all the points from a bunch of slices. This is probably
+# what you're looking for.
+# combined = slices.combine()
+# slice_points = combined.points
+# slice_norm = combined.point_data['Normals']
+# print(len(slice_points))
+# print(slice_points)
+# data_slice = []
+#
+# for item in slice_points:
+#     if slice_points[0][-1] == item[-1]:
+#         data_slice.append(item)
+
+print(len(data_slice))
+print(data_slice)
+
+blocks = pv.MultiBlock(data_slice)
+obj = blocks.triangulate()
+print(blocks.triangulate)
 
 
+xx, yy, zz = np.meshgrid(data_slice[0], data_slice[1], data_slice[2])
 
+points = np.c_[xx.reshape(-1), yy.reshape(-1), zz.reshape(-1)]
+cloud = pv.PolyData(points)
+surf = cloud.delaunay_2d()
+surf.plot(show_edges=True)
 
+# pl = pv.Plotter()
+# # blocks = pv.MultiBlock(slice_points)
+# pl.add_mesh(obj)
+# pl.show()
 
-pl = pv.Plotter()
-# centers = my_mesh.cell_centers()
-# pl.add_mesh(my_mesh, show_edges=True, opacity=0.5, line_width=1)
-# pl.add_mesh(centers, color="r", point_size=4.0, render_points_as_spheres=True)
-# voxels = pv.voxelize(my_mesh, density=my_mesh.length / 200)
-# pl.add_mesh(voxels, show_edges=True, opacity=0.5, line_width=1)
-# pl.add_mesh(slices, show_scalar_bar=False,show_edges=True, opacity=1, line_width=1)
-pl.add_mesh(elevation, show_scalar_bar=False,show_edges=True, opacity=1, line_width=1)
-pl.show()
-# slices.plot()
+# print(obj.compute_cell_sizes())
+# obj.plot(show_edges=True, line_width=5)
